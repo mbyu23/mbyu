@@ -1,0 +1,1708 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <!-- 标准ICO -->
+    <link rel="icon" href="./image/mubai.ico?v=2" type="image/x-icon" />
+    <!-- 现代浏览器喜欢PNG -->
+    <link rel="icon" href="./image/mubai.png?v=2" type="image/png" />
+    <!-- 苹果设备 -->
+    <link rel="apple-touch-icon" href="./image/mubai.png?v=2" />
+    <title>📄读取TXT文件✨</title>
+    <link rel="icon" href="./image/mubai.png" type="image/png" sizes="32x32" />
+    <link rel="icon" href="./image/mubai.svg" type="image/svg+xml" />
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        min-height: 100vh;
+        overflow-x: hidden; /* 只禁止左右滚动，允许上下滚动 */
+      }
+
+      body {
+        background-color: #ccc;
+        /* background: url("./image/bg/bg2.png") center/cover no-repeat fixed; */
+        background-size: cover; /* 让背景图片覆盖整个容器 */
+        background-position: center center; /* 居中对齐背景图片 */
+        background-repeat: no-repeat; /* 禁止背景图片重复 */
+        background-attachment: fixed;
+      }
+
+      /* 背景容器固定住，不跟着滚动 */
+      #background-wrapper {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1; /* 背景层最底层 */
+        overflow: hidden;
+      }
+
+      /* 背景中的视频或图片铺满 */
+      #background-video,
+      #background-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      li {
+        list-style: none;
+      }
+      h3 {
+        height: 35px;
+        line-height: 30px;
+        margin: 10px 0px 10px 10px;
+        border: 2px solid #fdc305;
+        background: -webkit-linear-gradient(
+          top,
+          rgba(0, 0, 0, 0.2),
+          rgba(0, 0, 0, 0.6)
+        );
+        border-radius: 13px;
+        text-align: center;
+        color: rgb(251, 255, 1);
+        box-shadow: 2px 2px 3px rgba(187, 140, 9, 0.5);
+      }
+
+      h4 {
+        width: fit-content;
+        padding: 3px 10px;
+        /* margin-left: 10px;
+              margin-right: 30px;
+              margin-bottom: 3px; */
+        margin: 0 30px 3px 10px;
+        color: rgb(65, 5, 185);
+        border: 1px solid #9ab4ccc4;
+        border-radius: 8px;
+        background: -webkit-linear-gradient(top, #f1f8ffd0, #a4c7e6a6);
+        font-size: 14px;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+      }
+      h5 {
+        width: fit-content;
+        padding: 2px 6px;
+        margin-left: 10px;
+        margin-bottom: 3px;
+        color: #39046bf3;
+        border: 1px solid #9ab4ccc4;
+        border-radius: 8px;
+        background: -webkit-linear-gradient(top, #b2f7ceb9, #39bb6fb9);
+        font-size: 14px;
+      }
+      h6 {
+        width: fit-content;
+        padding: 2px 6px;
+        margin-left: 10px;
+        margin-bottom: 3px;
+        color: black;
+        border: 1px solid #bbd0e4c4;
+        border-radius: 8px;
+        background: -webkit-linear-gradient(top, #fafafac4, #e5f5ebbe);
+        font-size: 14px;
+      }
+      span,
+      i {
+        display: block;
+        padding-left: 8px;
+        font-style: normal;
+      }
+      i {
+        color: rgb(6, 6, 189);
+        font-weight: 400;
+        border-left: 4px solid #1f7014;
+      }
+      h6 > i:nth-child(1) {
+        margin-top: 5px;
+      }
+      video {
+        position: fixed;
+        z-index: -99;
+      }
+      img {
+        width: 150px;
+        height: 150px;
+        margin: 0px 3px 10px 10px;
+        border-radius: 15px;
+        transition: transform 0.3s ease-in-out;
+      }
+      img:hover {
+        filter: none;
+        transform: scale(1.2); /* 图片放大比例 */
+        /* margin: 20px; */
+      }
+
+      input[type="file"] {
+        display: none;
+      }
+      .fileBox {
+        width: fit-content;
+        margin: 10px auto;
+      }
+      .custom-file-input {
+        background-color: #fda10d;
+        color: white;
+        padding: 10px 15px;
+        margin: 0px 10px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      .fileBox:hover label {
+        background-color: #f39d12e5;
+      }
+
+      /* WebKit引擎（Chrome、Safari）的滚动条样式 */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: linear-gradient(
+          to right,
+          #93c0f1,
+          #ffffff,
+          #93c0f1
+        ); /* 设置轨道的背景色 */
+        border-radius: 10px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: -webkit-linear-gradient(top, #fab547, #fb9d02);
+        border-radius: 10px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: -webkit-linear-gradient(
+          top,
+          #f1953f,
+          #fc7b03
+        ); /* 设置滚动条悬停时的颜色为深红色 */
+      }
+      /* 初始化结束 end  */
+
+      /* 主体开始 start  */
+      .box {
+        display: flex;
+        margin: 10px auto;
+        min-width: 300px;
+        overflow: hidden; /* 防止放大后溢出 */
+      }
+
+      .box1 {
+        flex: 1;
+        min-width: 0; /* 允许内容区域缩小 */
+      }
+
+      /* 左侧菜单开始 start  */
+      .menuLeft {
+        width: 88px;
+        flex-shrink: 0;
+      }
+      .menuLeft ul {
+        position: fixed;
+        margin: 35px 0 0 0px;
+        padding-left: 5px;
+        height: 91%;
+        overflow: auto;
+      }
+      .menuLeft ul::-webkit-scrollbar {
+        display: none; /* Chrome Safari */
+      }
+      .menuLeft ul li {
+        width: fit-content;
+        margin-bottom: 3px;
+        padding: 6px 7px;
+        /* background: -webkit-linear-gradient(top, #2fa6dd, #045e88); */
+        background: linear-gradient(
+          to bottom,
+          #045e88,
+          #045e88,
+          #1c84b4,
+          #278ebe,
+          #1c84b4,
+          #045e88,
+          #045e88
+        );
+        border-radius: 10px;
+        line-height: 23px;
+        color: white;
+        cursor: pointer;
+      }
+
+      /*
+            .menuLeft ul li:nth-child(n + 5) {
+              background: linear-gradient(
+                to bottom,
+                #7217c7,
+                #8123da,
+                #a547fd,
+                #b46df7,
+                #a547fd,
+                #8123da,
+                #7217c7
+              );
+            }
+      */
+      .menuLeft ul li:nth-child(n + 17) {
+        background: linear-gradient(
+          to bottom,
+          #016464,
+          #008080,
+          #019191,
+          #01a3a3,
+          #019191,
+          #008080,
+          #016464
+        );
+      }
+
+      .menuLeft ul li:nth-child(n + 28) {
+        background: linear-gradient(
+          to bottom,
+          #36702e,
+          #3b8031,
+          #429336,
+          #4a9c3f,
+          #429336,
+          #3b8031,
+          #36702e
+        );
+      }
+      .menuLeft ul li:nth-child(n + 36) {
+        /* background: -webkit-linear-gradient(top, #54b448, #1f7014); */
+
+        background: linear-gradient(
+          to bottom,
+          #6715b4,
+          #741fc4,
+          #8a2be2,
+          #a150ec,
+          #8a2be2,
+          #741fc4,
+          #6715b4
+        );
+      }
+
+      /*
+            .menuLeft ul li:nth-child(n + 21) {
+              background: linear-gradient(
+                to bottom,
+                #016464,
+                #008080,
+                #019191,
+                #01a3a3,
+                #019191,
+                #008080,
+                #016464
+              );
+            }
+
+            .menuLeft ul li:nth-child(n + 28) {
+
+
+              background: linear-gradient(
+                to bottom,
+                #045e88,
+                #045e88,
+                #1c84b4,
+                #278ebe,
+                #1c84b4,
+                #045e88,
+                #045e88
+              );
+            }
+              */
+
+      .menuLeft ul li:hover {
+        background: -webkit-linear-gradient(top, hotpink, darkorange);
+        transform: scale(1.1); /* 例如：1.5 表示放大到1.5倍 */
+      }
+      .headContent {
+        width: 100px;
+        height: 30px;
+      }
+      .menuLeft > .headContent {
+        position: fixed;
+        display: none;
+        width: fit-content;
+        padding: 3px 5px;
+        margin-left: 12px;
+        height: 32px;
+        color: white;
+        border: 2px darkorange solid;
+        background-color: #f0fcee2f;
+        border-radius: 48%;
+        cursor: pointer;
+      }
+      .menuLeft > .headContent:hover {
+        background-color: #ffeefe34;
+        border-color: #1f7014;
+      }
+      /* 左侧菜单结束 end  */
+
+      /* 右侧内容区域开始 start  */
+      #output {
+        flex: 1;
+        max-width: calc(100% - 10px); /* 避免内容撑出容器 */
+        overflow-wrap: break-word;
+        word-break: break-word;
+      }
+      #output > div {
+        position: relative;
+        width: fit-content;
+        height: auto;
+        padding: 2px;
+        margin: 0 5px 5px 10px;
+        background-color: white;
+        border-radius: 8px;
+        color: black;
+        font-size: 17px;
+        cursor: pointer;
+        box-shadow: 2px 2px 4px #575757da;
+      }
+      #output > div p {
+        padding: 5px;
+        border-radius: 5px;
+      }
+
+      /* 内容第二个段落变色 */
+      #output > div p:nth-child(even) {
+        background: -webkit-linear-gradient(top, #fcffff, #def5fa);
+        color: rgb(78, 207, 2);
+      }
+
+      /*经过内容P标签背景高亮变色*/
+      #output > div p:hover {
+        background: -webkit-linear-gradient(top, #fcd, #fca);
+      }
+
+      /* 经过内容第二个段落字体变色 */
+      #output > div p:nth-child(even):hover {
+        color: red;
+      }
+
+      /* 经过内容div 放大1.02倍效果 */
+      #output > div:hover {
+        transform: scale(1.02);
+        position: relative;
+      }
+
+      /* 当 div 高亮时，禁用 p 悬停效果 */
+      #output > div.divHighlight p:hover {
+        background: transparent !important;
+      }
+
+      /* 复制后"❣️" 标记 开始 */
+      #output .divHighlight::before,
+      #output .highlight::before {
+        content: "❣️" !important;
+        position: absolute;
+        left: -25px;
+        top: 20%;
+        transform: translateY(-50%);
+        font-size: 24px;
+        z-index: 9999;
+        animation: pulse 1s infinite;
+        color: #ff0000;
+        text-shadow: 0 0 5px rgba(255, 0, 0, 0.7);
+      }
+
+      #h3List li::before {
+        content: none !important; /* 禁止标记出现在菜单 */
+      }
+      /* 复制后"❣️" 标记 结束 */
+
+      /* 右侧内容区域结束 end  */
+      /* 主体结束 end  */
+
+      /* 弹窗开始 start  */
+      /*
+      .popup {
+        position: fixed;
+        top: 150px;
+        left: 45%;
+        width: fit-content;
+        background: -webkit-linear-gradient(top, #e79d2dde, #b6710ae3);
+        padding: 10px 20px;
+        color: white;
+        border-radius: 10px;
+        font-size: 22px;
+        font-weight: 550;
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.5s;
+      }
+      */
+      /* 复制弹窗 开始 */
+      .notification {
+        position: fixed;
+        top: -100px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, #ff00cc, #3333ff, #00ffcc, #ffcc00);
+        background-size: 300% 300%;
+        color: white;
+        padding: 15px 30px;
+        border-radius: 50px;
+        font-size: 22px;
+        font-weight: 700;
+        opacity: 0;
+        z-index: 999999;
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.5),
+          0 0 40px rgba(255, 0, 255, 0.5), 0 0 60px rgba(0, 255, 255, 0.3);
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        pointer-events: none;
+      }
+
+      /* 入场动画 */
+      .notification.animate-in {
+        animation: slideIn 0.6s forwards, gradientBG 3s ease infinite,
+          pulseText 1.5s ease infinite alternate;
+      }
+
+      /* 退场动画 */
+      .notification.animate-out {
+        animation: slideOut 0.6s forwards;
+      }
+
+      @keyframes gradientBG {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+
+      @keyframes pulseText {
+        0% {
+          transform: translateX(-50%) scale(1);
+        }
+        50% {
+          transform: translateX(-50%) scale(1.1);
+        }
+        100% {
+          transform: translateX(-50%) scale(1);
+        }
+      }
+
+      @keyframes slideIn {
+        0% {
+          top: -100px;
+          opacity: 0;
+          transform: translateX(-50%) scale(0.8) rotate(-10deg);
+        }
+        70% {
+          top: 80px;
+          opacity: 1;
+          transform: translateX(-50%) scale(1.1) rotate(5deg);
+        }
+        100% {
+          top: 60px;
+          opacity: 1;
+          transform: translateX(-50%) scale(1) rotate(0deg);
+        }
+      }
+
+      @keyframes slideOut {
+        0% {
+          top: 60px;
+          opacity: 1;
+          transform: translateX(-50%) scale(1);
+        }
+        30% {
+          top: 100px;
+          opacity: 0.8;
+          transform: translateX(-50%) scale(1.1);
+        }
+        100% {
+          top: -100px;
+          opacity: 0;
+          transform: translateX(-50%) scale(0.8) rotate(10deg);
+        }
+      }
+
+      /* 粒子样式 */
+      .notification-particle {
+        position: fixed;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 999999;
+        transform: translate(-50%, -50%);
+      }
+      /* 复制弹窗 结束 */
+      /* 弹窗结束 end */
+
+      /* p标签背景高亮  */
+      /* 内容区域DIV(divHighlight)与P(highlight)标签背景高亮  开始 */
+      .highlight,
+      .divHighlight {
+        background: -webkit-linear-gradient(top, #db149f, #ad0789) !important;
+        color: white !important;
+        transition: background 0.3s ease; /* 平滑过渡效果 */
+        box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.3);
+      }
+      /* 内容区域DIV(divHighlight)与P(highlight)标签背景高亮  结束 */
+
+      /* li背景高亮  */
+      li.highlight {
+        background: linear-gradient(
+          to bottom,
+
+          #ad0789,
+          #c718a1,
+          #db149f,
+          #f043bc,
+          #db149f,
+          #c718a1,
+          #ad0789
+        ) !important;
+        color: white !important;
+      }
+
+      .bottom {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        height: 30px;
+        background-color: #747474f3;
+        color: yellow;
+        font-size: 18px;
+      }
+      .bottom > div {
+        flex: 1;
+        line-height: 30px;
+        text-align: center;
+      }
+
+      /* 视频背景设置  */
+      #background-video {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: -1; /* 将视频放置在其他内容的底部 */
+      }
+
+      /* 点击li 动画效果 开始 */
+      /* 添加这个新的CSS动画 */
+
+      @keyframes pulseHighlight {
+        0% {
+          transform: scale(1);
+          box-shadow: 0 0 0 rgba(255, 255, 255, 0.7);
+        }
+        50% {
+          transform: scale(1.1);
+          box-shadow: 0 0 10px rgba(255, 255, 255, 0.9);
+        }
+        100% {
+          transform: scale(1);
+          box-shadow: 0 0 0 rgba(255, 255, 255, 0.7);
+        }
+      }
+
+      /* 修改高亮样式，添加动画 */
+      li.highlight {
+        animation: pulseHighlight 0.5s ease-out;
+        position: relative;
+        z-index: 1;
+      }
+      /* 点击li 动画效果 结束 */
+
+      /* 复制后流光效果动画 开始 */
+      @keyframes pulse {
+        0% {
+          transform: translateY(-50%) scale(1);
+        }
+        50% {
+          transform: translateY(-50%) scale(1.3);
+        }
+        100% {
+          transform: translateY(-50%) scale(1);
+        }
+      }
+      @keyframes borderFlow {
+        0% {
+          border-color: #ff00cc;
+          box-shadow: 0 0 10px #ff00cc;
+        }
+        25% {
+          border-color: #3333ff;
+          box-shadow: 0 0 10px #3333ff;
+        }
+        50% {
+          border-color: #00ffcc;
+          box-shadow: 0 0 10px #00ffcc;
+        }
+        75% {
+          border-color: #ffcc00;
+          box-shadow: 0 0 10px #ffcc00;
+        }
+        100% {
+          border-color: #ff00cc;
+          box-shadow: 0 0 10px #ff00cc;
+        }
+      }
+      /* 流光环绕效果 */
+      .flowing-border {
+        position: relative;
+        border: 2px solid transparent;
+        border-radius: 8px;
+        animation: borderFlow 3s linear infinite;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+      }
+
+      /* 复制后流光效果动画 结束 */
+
+      /* 页面视图开始 */
+      @media screen and (min-width: 440px) {
+        .box {
+          width: 420px;
+        }
+      }
+
+      @media screen and (min-width: 520px) {
+        .box {
+          width: 510px;
+        }
+      }
+      @media screen and (min-width: 590px) {
+        .box {
+          width: 580px;
+        }
+      }
+
+      @media screen and (min-width: 620px) {
+        .box {
+          width: 600px;
+        }
+      }
+      @media screen and (min-width: 660px) {
+        .box {
+          width: 650px;
+        }
+      }
+
+      @media screen and (min-width: 740px) {
+        .box {
+          width: 720px;
+        }
+      }
+
+      @media screen and (min-width: 880px) {
+        .box {
+          width: 820px;
+        }
+      }
+
+      @media screen and (min-width: 1040px) {
+        .box {
+          width: 1010px;
+        }
+      }
+
+      @media screen and (min-width: 1280px) {
+        .box {
+          width: 1240px;
+        }
+      }
+
+      /* 页面视图结束 */
+    </style>
+    <style>
+      /* 全屏色彩波动效果(鼠标效果) 开始 */
+      .color-wave {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(45deg, #ff00cc, #3333ff, #00ffcc, #ffcc00);
+        background-size: 400% 400%;
+        z-index: 9998;
+        opacity: 0.3;
+        mix-blend-mode: overlay;
+        animation: gradientWave 2s ease infinite;
+        pointer-events: none;
+      }
+
+      @keyframes gradientWave {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+      /* 全屏色彩波动效果 结束 */
+
+      /* 量子粒子重组效果 开始 */
+      .quantum-field {
+        position: fixed;
+        width: 0;
+        height: 0;
+        transform: translate(-50%, -50%);
+        z-index: 9999;
+        pointer-events: none;
+      }
+
+      .quantum-particle {
+        position: absolute;
+        width: var(--size);
+        height: var(--size);
+        background: var(--color);
+        border-radius: 50%;
+        opacity: 0;
+        left: 0;
+        top: 0;
+        filter: blur(1px);
+        animation: quantumFloat 1.5s ease-in-out var(--delay) forwards,
+          quantumPulse 0.5s ease-in-out infinite alternate;
+      }
+
+      @keyframes quantumFloat {
+        0% {
+          transform: translate(var(--x), var(--y)) scale(0);
+          opacity: 0;
+        }
+        50% {
+          opacity: 0.8;
+        }
+        100% {
+          transform: translate(0, 0) scale(1.5);
+          opacity: 0;
+        }
+      }
+
+      @keyframes quantumPulse {
+        from {
+          box-shadow: 0 0 2px 0px currentColor;
+        }
+        to {
+          box-shadow: 0 0 8px 2px currentColor;
+        }
+      }
+
+      .quantum-active .quantum-particle {
+        animation: quantumCollapse 1s ease-out forwards,
+          quantumPulse 0.3s ease-in-out infinite alternate;
+      }
+
+      @keyframes quantumCollapse {
+        0% {
+          transform: translate(var(--x), var(--y));
+          opacity: 0.8;
+        }
+        100% {
+          transform: translate(0, 0);
+          opacity: 0;
+        }
+      }
+
+      /* 量子粒子重组效果 结束 */
+
+      /* 鼠标波纹 开始 */
+      .mouse-ripple {
+        position: fixed;
+        transition: all 1s ease-out;
+      }
+
+      /* 鼠标波纹 结束 */
+    </style>
+  </head>
+  <body>
+    <div id="background-wrapper">
+      <video id="background-video" preload="auto" autoplay loop muted>
+        <source src="./image/bg/1.mp4" type="video/mp4" />
+      </video>
+    </div>
+
+    <div class="box">
+      <div class="menuLeft">
+        <div class="headContent">
+          <div id="myElement">🍀</div>
+        </div>
+        <ul id="h3List"></ul>
+      </div>
+      <div class="box1">
+        <div id="output"></div>
+      </div>
+    </div>
+
+    <div class="bottom">
+      <div id="time1"></div>
+      <div id="time2"></div>
+      <div id="time3"></div>
+    </div>
+    <!-- 打开文件开始 start  -->
+    <div class="fileBox">
+      <label for="txtFileInput" class="custom-file-input">选择文件</label>
+      <input type="file" id="txtFileInput" />
+    </div>
+    <!-- 打开文件结束 end  -->
+
+    <div class="notification">✅ 复制成功</div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <script>
+      const pTags = [];
+      let highlightedTag = null;
+      let highlightedLi = null;
+
+      $(document).ready(function () {
+        $("#txtFileInput").on("change", handleFile);
+
+        function handleFile(event) {
+          const file = event.target.files[0];
+          const outputDiv = $("#output");
+          const h3List = $("#h3List");
+          const title = $("title");
+          $(".menuLeft>div").css("display", "block");
+
+          // Clear previous content
+          outputDiv.empty();
+          h3List.empty();
+          pTags.length = 0;
+          let lastH6Tag = null;
+
+          if (!file) {
+            outputDiv.text("请选择一个文件。");
+            return;
+          }
+
+          const reader = new FileReader();
+
+          reader.onload = function (event) {
+            const content = event.target.result;
+            const lines = content.split("\n");
+            let currentParagraph = null;
+
+            const fileName = file.name.replace(/\.[^/.]+$/, "");
+            title.text(fileName);
+            // 通知父页面更新标题
+            parent.postMessage(
+              { type: "updateTitle", filename: file.name },
+              "*"
+            );
+
+            lines.forEach((line) => {
+              line = line.trim();
+
+              if (line === "") {
+                if (currentParagraph) {
+                  outputDiv.append(currentParagraph);
+                  currentParagraph = null;
+                }
+              } else {
+                // line = line.replace(/^[A-Za-z0-9][\W_]/, "");
+                line = line.replace(/^[A-Za-z0-9][\W_]{2}/, "");
+
+                line = line.trim();
+
+                if (line) {
+                  const paragraphs = line.split(/\n+/);
+
+                  paragraphs.forEach((paragraphText, index) => {
+                    let element;
+
+                    if (paragraphText.startsWith("h3")) {
+                      element = $("<h3>").text(paragraphText.slice(3).trim());
+                      outputDiv.append(element);
+
+                      const li = $("<li>").text(element.text().slice(0, 5));
+                      li.on("click", () => scrollToH3(element[0]));
+                      li.on("click", highlightLi);
+                      h3List.append(li);
+                    } else if (paragraphText.startsWith("h4")) {
+                      element = $("<h4>").text(paragraphText.slice(3).trim());
+                      outputDiv.append(element);
+                      pTags.push(element[0]);
+                    } else if (paragraphText.startsWith("h5")) {
+                      element = $("<h5>").text(paragraphText.slice(3).trim());
+                      outputDiv.append(element);
+                    } else if (paragraphText.startsWith("h6")) {
+                      element = $("<h6>").text(paragraphText.slice(3).trim());
+                      outputDiv.append(element);
+
+                      const iTag = $("<i>");
+                      pTags.push(iTag[0]);
+                      lastH6Tag = element[0];
+                    } else if (paragraphText.startsWith("hh")) {
+                      const iElement = $("<i>").text(
+                        paragraphText.slice(2).trim()
+                      );
+
+                      if (lastH6Tag) {
+                        $(lastH6Tag).append(iElement);
+                      }
+                    } else if (paragraphText.startsWith("span")) {
+                      if (pTags.length > 0) {
+                        const lastPTag = pTags[pTags.length - 1];
+                        const span = $("<span>").text(
+                          paragraphText.slice(4).trim()
+                        );
+                        $(lastPTag).append(span);
+                      }
+                    } else if (paragraphText.startsWith("./")) {
+                      const imgSrc = paragraphText.slice(2).trim();
+                      if (imgSrc) {
+                        element = $("<img>").attr("src", imgSrc);
+                        outputDiv.append(element);
+                      }
+                    } else if (paragraphText.startsWith("image")) {
+                      const imgSrc = paragraphText.trim();
+                      if (imgSrc) {
+                        element = $("<img>").attr("src", imgSrc);
+                        outputDiv.append(element);
+                      }
+                    } else {
+                      if (!currentParagraph) {
+                        currentParagraph = $("<div>");
+                        outputDiv.append(currentParagraph);
+                      }
+                      element = $("<p>").text(paragraphText);
+                      element.on("click", copyText);
+                      pTags.push(element[0]);
+                      currentParagraph.append(element);
+                    }
+                  });
+                }
+              }
+            });
+
+            if (currentParagraph) {
+              outputDiv.append(currentParagraph);
+            }
+
+            // Highlight first li after file processing
+            const firstLi = h3List.find("li").first();
+            if (firstLi.length) {
+              firstLi.addClass("highlight");
+              highlightedLi = firstLi[0];
+            }
+          };
+
+          reader.readAsText(file);
+        }
+
+        function scrollToH3(h3Element) {
+          h3Element.scrollIntoView();
+        }
+
+        function highlightLi(event) {
+          if (highlightedLi) {
+            $(highlightedLi).removeClass("highlight");
+          }
+
+          const liElement = event.currentTarget;
+          $(liElement).addClass("highlight");
+          highlightedLi = liElement;
+
+          // 添加粒子效果
+          /*
+          const rect = liElement.getBoundingClientRect();
+          const x = rect.left + rect.width / 2;
+          const y = rect.top + rect.height / 2;
+
+          createQuantumEffect({ clientX: x, clientY: y });
+          */
+
+          /* 重力下落效果 */
+          const li = event.currentTarget;
+
+          li.animate(
+            [
+              { transform: "translateY(0)", easing: "ease-out" },
+              { transform: "translateY(30px)", easing: "ease-in" },
+              { transform: "translateY(0)", easing: "ease-out" },
+            ],
+            {
+              duration: 600,
+            }
+          );
+        }
+
+        showDocument();
+
+        function showDocument() {
+          let timeoutId;
+          let elementsHidden = false;
+          let savedScrollPosition = 0;
+
+          $(window).on("mouseover", handleMouseOver);
+          $(window).on("mouseout", handleMouseOut);
+
+          function handleMouseOver() {
+            clearTimeout(timeoutId);
+
+            if (elementsHidden) {
+              $(".box").css({
+                display: "flex",
+                opacity: "1",
+              });
+              $(".fileBox").css({
+                display: "block",
+                opacity: "1",
+              });
+              elementsHidden = false;
+
+              window.scrollTo(0, savedScrollPosition);
+            }
+          }
+
+          function handleMouseOut(event) {
+            if (
+              event.relatedTarget === null ||
+              event.relatedTarget === undefined
+            ) {
+              if (!elementsHidden) {
+                savedScrollPosition = window.scrollY;
+
+                $(".box").css("transition", "opacity 0.7s");
+                $(".fileBox").css("transition", "opacity 0.7s");
+
+                timeoutId = setTimeout(() => {
+                  $(".box, .fileBox").css("opacity", "0");
+
+                  setTimeout(() => {
+                    $(".box").css("display", "none");
+                    $(".fileBox").css("display", "none");
+                    elementsHidden = true;
+
+                    $(".box").css("transition", "none");
+                    $(".fileBox").css("transition", "none");
+                  }, 1500);
+                }, 10000);
+              }
+            }
+          }
+        }
+
+        function copyText(event) {
+          const pTag = $(event.currentTarget);
+          const parentDiv = pTag.parent(); // 获取当前p标签的父div
+          const pTagsInDiv = parentDiv.find("p").length; // 计算当前div中有多少个p标签
+
+          // --- 复制文本逻辑（保持不变）---
+          let textToCopy = "";
+          pTag.contents().each(function () {
+            if (this.nodeType === Node.TEXT_NODE) {
+              textToCopy += this.textContent;
+            } else if (this.tagName === "SPAN") {
+              textToCopy += "\n" + $(this).text();
+            }
+          });
+          copyToClipboard(textToCopy);
+          showNotification();
+
+          // --- 高亮逻辑（新增判断）---
+          // 2. 只清除内容区域的旧效果（不碰左侧菜单）
+          $("#output .divHighlight, #output .highlight").removeClass(
+            "divHighlight highlight flowing-border"
+          );
+
+          // 3. 添加新效果到内容区域
+          const target = pTagsInDiv === 1 ? parentDiv : pTag;
+          const highlightClass =
+            pTagsInDiv === 1 ? "divHighlight" : "highlight";
+
+          target
+            .addClass(highlightClass)
+            .css({
+              position: "relative",
+              overflow: "visible",
+            })
+            .addClass("flowing-border");
+
+          // 4. 强制显示标记（解决浏览器渲染问题）
+          void target[0].offsetWidth;
+
+          // 5. 5秒后只移除流光（保留标记）
+          setTimeout(() => {
+            target.removeClass("flowing-border");
+          }, 5000);
+
+          // 全屏色彩波动效果 调用
+          createColorWaveEffect(event);
+          // 粒子重组动画 调用
+          createQuantumEffect(event);
+        }
+
+        // 量子粒子重组效果
+        function createQuantumEffect(event) {
+          const quantum = $("<div>").addClass("quantum-field");
+          const x = event.clientX;
+          const y = event.clientY;
+
+          // 创建量子粒子
+          for (let i = 0; i < 80; i++) {
+            const particle = $("<div>")
+              .addClass("quantum-particle")
+              .css({
+                "--x": `${Math.random() * 200 - 100}px`,
+                "--y": `${Math.random() * 200 - 100}px`,
+                "--size": `${3 + Math.random() * 5}px`,
+                "--color": `hsl(${Math.random() * 360}, 100%, 50%)`,
+                "--delay": `${Math.random() * 0.5}s`,
+              });
+            quantum.append(particle);
+          }
+
+          $("body").append(quantum);
+          quantum.css({ left: x + "px", top: y + "px" });
+
+          setTimeout(() => {
+            quantum.addClass("quantum-active");
+            setTimeout(() => quantum.remove(), 2000);
+          }, 100);
+        }
+
+        // 全屏色彩波动效果 (复制后的效果) start
+        function createColorWaveEffect() {
+          const wave = $("<div>").addClass("color-wave");
+          $("body").append(wave);
+
+          setTimeout(() => {
+            wave.animate({ opacity: 0 }, 1000, () => wave.remove());
+          }, 500);
+        }
+
+        //  全屏色彩波动效果 (复制后的效果) end
+
+        let notificationTimeout;
+        let isAnimating = false;
+
+        // 复制成功后弹出的动画效果
+        function showNotification() {
+          const notification = $(".notification");
+
+          // 如果正在动画中，先快速完成当前动画
+          if (isAnimating) {
+            notification.stop(true, true).removeClass("animate-in animate-out");
+            isAnimating = false;
+          }
+
+          // 重置状态和位置
+          notification.css({
+            top: "-100px",
+            opacity: "0",
+            transform: "translateX(-50%) scale(0.8)",
+          });
+
+          // 随机选择表情符号
+          const emojis = ["✨", "✅", "⚡", "🌟", "🎉", "🔥", "💫", "🚀"];
+          const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+          notification.html(`${randomEmoji} 复制成功 ${randomEmoji}`);
+
+          // 立即开始入场动画
+          isAnimating = true;
+          notification.addClass("animate-in");
+
+          // 添加粒子爆炸效果
+          createNotificationParticles();
+
+          // 监听动画结束
+          notification.on("animationend", function () {
+            if ($(this).hasClass("animate-in")) {
+              // 入场动画结束，3秒后开始退场
+              notificationTimeout = setTimeout(() => {
+                $(this).removeClass("animate-in").addClass("animate-out");
+              }, 3000);
+            } else if ($(this).hasClass("animate-out")) {
+              // 退场动画结束，重置状态
+              $(this).removeClass("animate-out");
+              isAnimating = false;
+            }
+          });
+        }
+
+        function createNotificationParticles() {
+          const notification = $(".notification")[0];
+          if (!notification) return;
+
+          const rect = notification.getBoundingClientRect();
+          const centerX = rect.left + rect.width / 2;
+          const centerY = rect.top + rect.height / 2;
+
+          const colors = [
+            "#ff00cc",
+            "#3333ff",
+            "#00ffcc",
+            "#ffcc00",
+            "#ffffff",
+          ];
+
+          for (let i = 0; i < 30; i++) {
+            const particle = document.createElement("div");
+            particle.className = "notification-particle";
+
+            const size = Math.random() * 8 + 4;
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            const angle = Math.random() * Math.PI * 2;
+            const distance = Math.random() * 50 + 30;
+            const duration = Math.random() * 1 + 0.5;
+
+            particle.style.cssText = `
+        left: ${centerX}px;
+        top: ${centerY}px;
+        width: ${size}px;
+        height: ${size}px;
+        background: ${color};
+        box-shadow: 0 0 ${size / 2}px ${color};
+        animation: particle-move-${i} ${duration}s ease-out forwards;
+      `;
+
+            // 创建唯一的动画
+            const style = document.createElement("style");
+            style.innerHTML = `
+        @keyframes particle-move-${i} {
+          0% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+          }
+          100% {
+            transform: translate(${Math.cos(angle) * distance - 50}%, 
+                              ${Math.sin(angle) * distance - 50}%) scale(0);
+            opacity: 0;
+          }
+        }
+      `;
+
+            document.head.appendChild(style);
+            document.body.appendChild(particle);
+
+            // 动画结束后移除
+            setTimeout(() => {
+              particle.remove();
+              style.remove();
+            }, duration * 1000);
+          }
+        }
+
+        function createNotificationParticles() {
+          const notification = $(".notification")[0];
+          if (!notification) return;
+
+          const rect = notification.getBoundingClientRect();
+          const centerX = rect.left + rect.width / 2;
+          const centerY = rect.top + rect.height / 2;
+
+          const colors = [
+            "#ff00cc",
+            "#3333ff",
+            "#00ffcc",
+            "#ffcc00",
+            "#ffffff",
+          ];
+
+          for (let i = 0; i < 30; i++) {
+            const particle = document.createElement("div");
+            particle.className = "notification-particle";
+
+            const size = Math.random() * 8 + 4;
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            const angle = Math.random() * Math.PI * 2;
+            const distance = Math.random() * 50 + 30;
+            const duration = Math.random() * 1 + 0.5;
+
+            particle.style.cssText = `
+        left: ${centerX}px;
+        top: ${centerY}px;
+        width: ${size}px;
+        height: ${size}px;
+        background: ${color};
+        box-shadow: 0 0 ${size / 2}px ${color};
+        animation: particle-move-${i} ${duration}s ease-out forwards;
+      `;
+
+            // 创建唯一的动画
+            const style = document.createElement("style");
+            style.innerHTML = `
+        @keyframes particle-move-${i} {
+          0% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+          }
+          100% {
+            transform: translate(${Math.cos(angle) * distance - 50}%, 
+                              ${Math.sin(angle) * distance - 50}%) scale(0);
+            opacity: 0;
+          }
+        }
+      `;
+
+            document.head.appendChild(style);
+            document.body.appendChild(particle);
+
+            // 动画结束后移除
+            setTimeout(() => {
+              particle.remove();
+              style.remove();
+            }, duration * 1000);
+          }
+        }
+
+        function copyToClipboard(text) {
+          const textarea = $("<textarea>").val(text);
+          $("body").append(textarea);
+          textarea.select();
+          document.execCommand("copy");
+          textarea.remove();
+        }
+
+        let isScrolling = false;
+
+        $(window).on("scroll", function () {
+          if (!isScrolling) {
+            isScrolling = true;
+            requestAnimationFrame(function () {
+              highlightVisibleH3();
+              isScrolling = false;
+            });
+          }
+        });
+
+        // 修改highlightVisibleH3函数，使其更精确地判断哪个h3应该在视口中高亮
+        function highlightVisibleH3() {
+          const $h3List = $("h3");
+          const $liList = $("#h3List li");
+          const scrollY = $(window).scrollTop();
+          const windowHeight = $(window).height();
+
+          // 定义视口中触发高亮的区域（这里是视口顶部20%到40%的区域）
+          const triggerZoneTop = windowHeight * 0.3;
+          const triggerZoneBottom = windowHeight * 0.4;
+
+          let activeIndex = -1;
+
+          $h3List.each(function (index) {
+            const h3 = $(this);
+            const h3Top = h3.offset().top - scrollY;
+            const h3Bottom = h3Top + h3.outerHeight();
+
+            // 检查h3是否进入触发区域
+            if (h3Top <= triggerZoneBottom && h3Bottom >= triggerZoneTop) {
+              activeIndex = index;
+              return false; // 跳出循环
+            }
+          });
+
+          // 如果有h3在触发区域内，则高亮对应的li
+          if (activeIndex >= 0 && $liList[activeIndex] !== highlightedLi) {
+            $liList.removeClass("highlight");
+
+            // 添加动画效果
+            const li = $liList.eq(activeIndex);
+            li.addClass("highlight");
+
+            // 添加重力下落效果
+            li.css("animation", "none"); // 重置动画
+            void li[0].offsetWidth; // 触发重绘
+            li.css("animation", "pulseHighlight 0.5s ease-out");
+
+            highlightedLi = $liList[activeIndex];
+          }
+        }
+
+        // 优化滚动事件监听，添加防抖
+        let scrollTimeout;
+        $(window).on("scroll", function () {
+          clearTimeout(scrollTimeout);
+          scrollTimeout = setTimeout(highlightVisibleH3, 50);
+        });
+
+        // 修改scrollToH3函数，使其滚动后能正确高亮
+        // 只保留最基本的目录点击跳转功能
+        function scrollToH3(h3Element) {
+          // 直接跳转到目标位置，没有任何动画效果
+          h3Element.scrollIntoView();
+
+          // 更新高亮状态
+          if (highlightedLi) {
+            $(highlightedLi).removeClass("highlight");
+          }
+
+          // 找到对应的li并高亮
+          const index = $("h3").index(h3Element);
+          const liElement = $("#h3List li").eq(index)[0];
+          $(liElement).addClass("highlight");
+          highlightedLi = liElement;
+        }
+
+        // 移除所有滚动相关的事件监听和函数
+        // 不需要highlightVisibleH3函数了
+        // 不需要window.scroll事件监听了
+
+        // 初始化时高亮第一个目录项
+        const firstLi = $("#h3List li").first();
+        if (firstLi.length) {
+          firstLi.addClass("highlight");
+          highlightedLi = firstLi[0];
+        }
+
+        // 点击切换视频与图片
+
+        $(function () {
+          let media = $("#background-video");
+          const btn = $("#myElement");
+
+          // 更改视频或者图片地址
+          const mediaList = [
+            { type: "video", src: "./image/bg/BeautifulGirl.mp4" },
+            { type: "image", src: "./image/bg/bg1.jpg" },
+          ];
+
+          let currentIndex = 0; // 当前正在显示的
+
+          // 初始页面直接显示第一个
+          function initBackground() {
+            const first = mediaList[0];
+            if (first.type === "video") {
+              $("#background-video source").attr("src", first.src);
+              media[0].load();
+            } else if (first.type === "image") {
+              $("#background-video").replaceWith(`
+        <img id="background-video" src="${first.src}" alt="background">
+      `);
+              media = $("#background-video");
+            }
+          }
+
+          function changeMedia() {
+            currentIndex = (currentIndex + 1) % mediaList.length;
+            const current = mediaList[currentIndex];
+
+            $("#background-video").fadeOut(300, function () {
+              if (current.type === "video") {
+                if ($(this).is("video")) {
+                  $(this).find("source").attr("src", current.src);
+                  this.load();
+                } else {
+                  $(this).replaceWith(`
+          <video id="background-video" preload="auto" autoplay loop muted>
+            <source src="${current.src}" type="video/mp4" />
+          </video>`);
+                }
+              } else if (current.type === "image") {
+                if ($(this).is("img")) {
+                  $(this).attr("src", current.src);
+                } else {
+                  $(this).replaceWith(`
+          <img id="background-video" src="${current.src}" alt="background">`);
+                }
+              }
+
+              media = $("#background-video");
+              media.fadeIn(300);
+            });
+          }
+
+          media = $("#background-video");
+          if (media.length === 0) {
+            console.error("背景元素丢失！");
+            return;
+          }
+
+          btn.on("click", changeMedia);
+
+          initBackground(); // 页面加载直接显示第一个
+        });
+
+        // Heart animation functionality
+        const heartContainer = $("<div>").css({
+          position: "fixed",
+          top: "0",
+          left: "0",
+          width: "100%",
+          height: "100%",
+          pointerEvents: "none",
+          overflow: "hidden",
+          zIndex: "99999", // 确保在最上层
+        });
+        $("body").append(heartContainer);
+
+        $("#output").on("click", function (e) {
+          if (
+            e.target.tagName === "P" ||
+            (e.target.tagName === "SPAN" &&
+              e.target.parentElement.tagName === "P")
+          ) {
+            const x = e.clientX;
+            const y = e.clientY;
+
+            for (let i = 0; i < 3; i++) {
+              const heart = $("<div>").addClass("heart").text("💕 ✨").css({
+                position: "absolute",
+                fontSize: "24px",
+                color: "red",
+                pointerEvents: "none",
+                animation: "floatUp 3s forwards",
+              });
+
+              const randomOffsetX = (Math.random() - 0.5) * 50;
+              const randomOffsetY = (Math.random() - 0.5) * 30;
+
+              const finalLeft = Math.max(
+                0,
+                Math.min(x + randomOffsetX, $(window).width() - 50)
+              );
+              const finalTop = Math.max(
+                0,
+                Math.min(y + randomOffsetY, $(window).height() - 50)
+              );
+
+              heart.css({
+                left: `${finalLeft}px`,
+                top: `${finalTop}px`,
+              });
+
+              heartContainer.append(heart);
+
+              heart.on("animationend", function () {
+                $(this).remove();
+              });
+            }
+          }
+        });
+
+        $("<style>")
+          .text(
+            `
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) scale(1.5);
+                opacity: 0;
+            }
+        }
+    `
+          )
+          .appendTo("head");
+
+        // Time functionality
+        function updateTimezoneTime(elementId, regionName, utcOffsetHours) {
+          const now = new Date();
+          const utcTime = now.getTime() + now.getTimezoneOffset() * 60000;
+          const targetTime = new Date(utcTime + utcOffsetHours * 3600000);
+
+          const hours = String(targetTime.getHours()).padStart(2, "0");
+          const minutes = String(targetTime.getMinutes()).padStart(2, "0");
+          const seconds = String(targetTime.getSeconds()).padStart(2, "0");
+
+          document.getElementById(
+            elementId
+          ).textContent = `${regionName}: ${hours}:${minutes}:${seconds}`;
+        }
+
+        // 示例：更新三个时区（参数仅为偏移量）
+        function updateAllTimes() {
+          updateTimezoneTime("time1", "土耳其/沙特/埃及", +3); // UTC+3
+          updateTimezoneTime("time2", "欧洲", +2); // UTC+1
+          updateTimezoneTime("time3", "巴西", -3); // UTC-3
+        }
+
+        // 启动时钟
+        setInterval(updateAllTimes, 1000);
+        updateAllTimes();
+      });
+    </script>
+    <script>
+      let lastX = 0,
+        lastY = 0;
+      let lastTime = 0;
+      let rippleCount = 0;
+      const MAX_RIPPLES = 20; // 建议20-30之间
+
+      $(document).on("mousemove", function (e) {
+        const now = Date.now();
+        if (now - lastTime < 50) return; // 限制频率
+        lastTime = now;
+
+        const speed = Math.sqrt(
+          Math.pow(e.clientX - lastX, 2) + Math.pow(e.clientY - lastY, 2)
+        );
+        lastX = e.clientX;
+        lastY = e.clientY;
+
+        // 移除最旧的波纹（如果超过最大数量）
+        if (rippleCount >= MAX_RIPPLES) {
+          $(".mouse-ripple").first().remove();
+          rippleCount--;
+        }
+
+        const ripple = $("<div>").addClass("mouse-ripple");
+        // 调整这三个参数使波纹更大：
+        const baseSize = 80; // 基础大小从50提高到80
+        const speedFactor = 3; // 速度系数从2提高到3
+        const maxSize = 400; // 最大限制从200提高到400
+        const size = Math.min(maxSize, baseSize + speed * speedFactor);
+
+        const color = `hsla(${
+          (e.clientX / window.innerWidth) * 360
+        }, 80%, 60%, 0.5)`;
+
+        ripple
+          .css({
+            position: "fixed",
+            left: e.clientX + "px",
+            top: e.clientY + "px",
+            width: "0",
+            height: "0",
+            border: `3px solid ${color}`, // 边框加粗
+            borderRadius: "50%",
+            transform: "translate(-50%, -50%)",
+            pointerEvents: "none",
+            zIndex: 9997,
+            boxShadow: `0 0 10px ${color}`, // 添加发光效果
+          })
+          .appendTo("body");
+
+        rippleCount++;
+
+        ripple.animate(
+          {
+            width: size + "px",
+            height: size + "px",
+            opacity: 0,
+          },
+          1200, // 动画时间稍长
+          function () {
+            $(this).remove();
+            rippleCount--;
+          }
+        );
+      });
+    </script>
+  </body>
+</html>
